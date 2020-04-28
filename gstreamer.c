@@ -19,6 +19,15 @@ void gstreamer_object_set(GstElement* object,const char* first_property_name, co
     g_object_set(GST_OBJECT(object), first_property_name, arg, NULL);
 }
 
+void gstreamer_object_set_int(GstElement* object,const char* first_property_name, long arg){
+    gint64 garg = arg;
+    g_object_set(GST_OBJECT(object), first_property_name, garg, NULL);
+}
+
+void gstreamer_object_set_double(GstElement* object,const char* first_property_name, double arg){
+    g_object_set(GST_OBJECT(object), first_property_name,(gdouble) arg, NULL);
+}
+
 typedef struct SignalHandlerUserData {
     int elementId;
     char* signal;
@@ -155,6 +164,6 @@ void gstreamer_pad_object_set_int(GstPad* object, const char* first_property_nam
     g_object_set(GST_OBJECT(object), first_property_name, garg, NULL);
 }
 
-void gstreamer_pad_object_set_float(GstPad* object, const char* first_property_name, float arg){
+void gstreamer_pad_object_set_double(GstPad* object, const char* first_property_name, double arg){
     g_object_set(GST_OBJECT(object), first_property_name,(gdouble) arg, NULL);
 }
