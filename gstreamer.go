@@ -319,6 +319,16 @@ func (p *Pad) GetCurrentCaps() *Caps {
 	return caps
 }
 
+//Set ...
+func (p *Pad) Set(property string, value string) {
+	elementPropertyStrUnsafe := C.CString(property)
+	elementValueStrUnsafe := C.CString(value)
+	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
+	defer C.free(unsafe.Pointer(elementValueStrUnsafe))
+
+	C.gstreamer_pad_object_set(p.pad, elementPropertyStrUnsafe, elementValueStrUnsafe)
+}
+
 //GetStructure ...
 func (c *Caps) GetStructure() *Structure {
 	cstructure := C.gst_caps_get_structure(c.caps, C.uint(0))
