@@ -149,3 +149,12 @@ gboolean gstreamer_pad_link(GstPad* src, GstPad* dest){
 void gstreamer_pad_object_set(GstPad* object, const char* first_property_name, const char* arg){
     g_object_set(GST_OBJECT(object), first_property_name, arg, NULL);
 }
+
+void gstreamer_pad_object_set_int(GstPad* object, const char* first_property_name, long arg){
+    gint64 garg = arg;
+    g_object_set(GST_OBJECT(object), first_property_name, garg, NULL);
+}
+
+void gstreamer_pad_object_set_float(GstPad* object, const char* first_property_name, float arg){
+    g_object_set(GST_OBJECT(object), first_property_name, arg, NULL);
+}

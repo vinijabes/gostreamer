@@ -329,6 +329,22 @@ func (p *Pad) Set(property string, value string) {
 	C.gstreamer_pad_object_set(p.pad, elementPropertyStrUnsafe, elementValueStrUnsafe)
 }
 
+//SetInt ...
+func (p *Pad) SetInt(property string, value int64) {
+	elementPropertyStrUnsafe := C.CString(property)
+	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
+
+	C.gstreamer_pad_object_set_int(p.pad, elementPropertyStrUnsafe, C.long(value))
+}
+
+//SetFloat ...
+func (p *Pad) SetFloat(property string, value float64) {
+	elementPropertyStrUnsafe := C.CString(property)
+	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
+
+	C.gstreamer_pad_object_set_float(p.pad, elementPropertyStrUnsafe, C.float(value))
+}
+
 //GetStructure ...
 func (c *Caps) GetStructure() *Structure {
 	cstructure := C.gst_caps_get_structure(c.caps, C.uint(0))
