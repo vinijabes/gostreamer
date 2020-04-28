@@ -156,5 +156,5 @@ void gstreamer_pad_object_set_int(GstPad* object, const char* first_property_nam
 }
 
 void gstreamer_pad_object_set_float(GstPad* object, const char* first_property_name, float arg){
-    g_object_set(GST_OBJECT(object), first_property_name, arg, NULL);
+    g_object_set(GST_OBJECT(object), first_property_name,(gdouble) arg, NULL);
 }
