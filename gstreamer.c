@@ -74,6 +74,12 @@ GstPad* gstreamer_element_request_pad(GstElement* element, GstPadTemplate* templ
     return gst_element_request_pad(GST_ELEMENT(element), GST_PAD_TEMPLATE(template), NULL, NULL);
 }
 
+void gstreamer_element_push_buffer(GstElement *element, void *buffer,int len){
+    gpointer p = g_memdup(buffer, len);
+    GstBuffer *data = gst_buffer_new_wrapped(p, len);
+    gst_app_src_push_buffer(GST_APP_SRC(element), data);
+}
+
 
 /* PIPELINE METHODS */
 

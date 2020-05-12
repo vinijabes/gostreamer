@@ -303,6 +303,14 @@ func (e *Element) RequestPad(template *PadTemplate) (*Pad, error) {
 	return pad, nil
 }
 
+//Push ...
+func (e *Element) Push(buffer []byte) {
+
+	b := C.CBytes(buffer)
+	defer C.free(unsafe.Pointer(b))
+	C.gstreamer_element_push_buffer(e.element, b, C.int(len(buffer)))
+}
+
 //export goHandlePadAddedSignal
 func goHandlePadAddedSignal(elementID C.int, cpad *C.GstPad) {
 	lock.Lock()

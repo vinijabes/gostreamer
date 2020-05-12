@@ -42,6 +42,7 @@ void gstreamer_element_pad_added_signal_connect(GstElement* element, int element
 void gstreamer_set_caps(GstElement *element,const char *capstr); 
 GstPadTemplate* gstreamer_get_pad_template(GstElement* element, const char* padName);
 GstPad* gstreamer_element_request_pad(GstElement* element, GstPadTemplate* template);
+void gstreamer_element_push_buffer(GstElement *element, void *buffer,int len);
 
 GstPipeline* gstreamer_create_pipeline(const char* name); 
 void gstreamer_pipeline_start(GstPipeline* pipeline);
