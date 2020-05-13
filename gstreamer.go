@@ -99,6 +99,13 @@ func init() {
 	C.gstreamer_init()
 }
 
+func btoi(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
 //NewPipeline ...
 func NewPipeline(name string) (*Pipeline, error) {
 	pipelineStrUnsafe := C.CString(name)
@@ -258,7 +265,7 @@ func (e *Element) SetBool(property string, value bool) {
 	elementPropertyStrUnsafe := C.CString(property)
 	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
 
-	C.gstreamer_object_set_bool(e.element, elementPropertyStrUnsafe, C.int(value))
+	C.gstreamer_object_set_bool(e.element, elementPropertyStrUnsafe, C.int(btoi(value)))
 }
 
 //GetStaticPad ...
@@ -381,7 +388,7 @@ func (p *Pad) SetBool(property string, value bool) {
 	elementPropertyStrUnsafe := C.CString(property)
 	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
 
-	C.gstreamer_pad_object_set_bool(p.pad, elementPropertyStrUnsafe, C.int(value))
+	C.gstreamer_pad_object_set_bool(p.pad, elementPropertyStrUnsafe, C.int(btoi(value)))
 }
 
 //GetStructure ...
