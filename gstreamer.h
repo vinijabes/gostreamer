@@ -37,6 +37,7 @@ int gstreamer_element_link(GstElement* src, GstElement* dest);
 void gstreamer_object_set(GstElement* object, const char* first_property_name, const char* arg);
 void gstreamer_object_set_int(GstElement* object, const char* first_property_name, long arg);
 void gstreamer_object_set_double(GstElement* object, const char* first_property_name, double arg);
+void gstreamer_object_set_bool(GstElement* object, const char* first_property_name, gboolean arg);
 void gstreamer_element_signal_connect(GstElement* element, const char* signal, int elementId);
 void gstreamer_element_pad_added_signal_connect(GstElement* element, int elementId);
 void gstreamer_set_caps(GstElement *element,const char *capstr); 
@@ -56,6 +57,7 @@ gboolean gstreamer_pad_link(GstPad* src, GstPad* dest);
 void gstreamer_pad_object_set(GstPad* object, const char* first_property_name, const char* arg);
 void gstreamer_pad_object_set_int(GstPad* object, const char* first_property_name, long arg);
 void gstreamer_pad_object_set_double(GstPad* object, const char* first_property_name, double arg);
+void gstreamer_pad_object_set_bool(GstPad* object, const char* first_property_name, gboolean arg);
 
 
 #endif

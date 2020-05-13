@@ -253,6 +253,14 @@ func (e *Element) SetFloat(property string, value float64) {
 	C.gstreamer_object_set_double(e.element, elementPropertyStrUnsafe, C.double(value))
 }
 
+//SetBool ...
+func (e *Element) SetBool(property string, value bool) {
+	elementPropertyStrUnsafe := C.CString(property)
+	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
+
+	C.gstreamer_object_set_bool(e.element, elementPropertyStrUnsafe, C.int(value))
+}
+
 //GetStaticPad ...
 func (e *Element) GetStaticPad(padName string) (*Pad, error) {
 	elementPadNameStrUnsafe := C.CString(padName)
@@ -305,7 +313,6 @@ func (e *Element) RequestPad(template *PadTemplate) (*Pad, error) {
 
 //Push ...
 func (e *Element) Push(buffer []byte) {
-
 	b := C.CBytes(buffer)
 	defer C.free(unsafe.Pointer(b))
 	C.gstreamer_element_push_buffer(e.element, b, C.int(len(buffer)))
@@ -367,6 +374,14 @@ func (p *Pad) SetFloat(property string, value float64) {
 	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
 
 	C.gstreamer_pad_object_set_double(p.pad, elementPropertyStrUnsafe, C.double(value))
+}
+
+//SetBool ...
+func (p *Pad) SetBool(property string, value bool) {
+	elementPropertyStrUnsafe := C.CString(property)
+	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
+
+	C.gstreamer_pad_object_set_bool(p.pad, elementPropertyStrUnsafe, C.int(value))
 }
 
 //GetStructure ...
