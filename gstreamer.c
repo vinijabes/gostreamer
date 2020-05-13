@@ -29,7 +29,7 @@ void gstreamer_object_set_double(GstElement* object,const char* first_property_n
 }
 
 void gstreamer_object_set_bool(GstElement* object, const char* first_property_name, gboolean arg){
-    g_object_set(GST_OBJECT(object), first_property_name,(gdouble) arg, NULL);
+    g_object_set(GST_OBJECT(object), first_property_name, arg, NULL);
 }
 
 typedef struct SignalHandlerUserData {
@@ -179,5 +179,5 @@ void gstreamer_pad_object_set_double(GstPad* object, const char* first_property_
 }
 
 void gstreamer_pad_object_set_bool(GstPad* object, const char* first_property_name, gboolean arg){
-    g_object_set(GST_OBJECT(object), first_property_name,(gdouble) arg, NULL);
+    g_object_set(GST_OBJECT(object), first_property_name, arg, NULL);
 }
