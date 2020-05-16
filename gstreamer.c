@@ -3,8 +3,11 @@
 #include <gst/audio/audio.h>
 #include <gst/gstcaps.h>
 
+GMainLoop *loop;
+
 void gstreamer_init() {
     gst_init(NULL, NULL);
+    loop = g_main_loop_new(NULL, TRUE);
 }
 
 GstElement* gstreamer_element_factory_make(const char* factoryname, const char* name){
@@ -141,6 +144,7 @@ gboolean gstreamer_bus_call(GstBus *bus, GstMessage *msg, gpointer user_data){
             goHandleBusMessage(msg, pipelineId);
             break;
         default:
+            goHandleBusMessage(msg, pipelineId);
             break;
     }
 

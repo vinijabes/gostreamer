@@ -2,6 +2,14 @@ package main
 
 import gstreamer "github.com/vinijabes/gostreamer"
 
+func handleMessages() {
+
+}
+
 func main() {
-	gstreamer.NewElement("teste", "teste")
+	gstreamer.NewPipeline("pipeline")
+
+	for {
+
+	}
 }
