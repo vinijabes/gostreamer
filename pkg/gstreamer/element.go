@@ -19,6 +19,8 @@ type Element interface {
 	Link(Element) bool
 	Unlink(Element) bool
 
+	SetState(GstState) GstStateChangeReturn
+
 	GetElementPointer() *C.GstElement
 }
 
@@ -37,6 +39,24 @@ type element struct {
 type elementFactory struct {
 	object
 }
+
+type GstState int
+type GstStateChangeReturn int
+
+const (
+	GstStateVoidPending GstState = iota
+	GstStateNull
+	GstStateReady
+	GstStatePaused
+	GstStatePlaying
+)
+
+const (
+	GstStateChangeFailure GstStateChangeReturn = iota
+	GstStateChangeSuccess
+	GstStateChangeAsync
+	GstStateChangeNoPreroll
+)
 
 //NewElement ...
 func NewElement(factory string, name string) (Element, error) {
@@ -88,6 +108,11 @@ func (e *element) Link(other Element) bool {
 
 func (e *element) Unlink(other Element) bool {
 	return !(int(C.gst_element_link(e.GetElementPointer(), other.GetElementPointer())) == 0)
+}
+
+func (e *element) SetState(state GstState) GstStateChangeReturn {
+	result := GstStateChangeReturn(C.gst_element_set_state(e.GetElementPointer(), C.GstState(state)))
+	return result
 }
 
 func (e *element) GetElementPointer() *C.GstElement {
