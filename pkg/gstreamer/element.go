@@ -21,6 +21,9 @@ type Element interface {
 
 	SetState(GstState) GstStateChangeReturn
 
+	GetPadTemplate(string) PadTemplate
+	RequestPad(PadTemplate, *string, Caps) Pad
+
 	GetElementPointer() *C.GstElement
 }
 
@@ -113,6 +116,42 @@ func (e *element) Unlink(other Element) bool {
 func (e *element) SetState(state GstState) GstStateChangeReturn {
 	result := GstStateChangeReturn(C.gst_element_set_state(e.GetElementPointer(), C.GstState(state)))
 	return result
+}
+
+func (e *element) GetPadTemplate(name string) PadTemplate {
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+
+	cpadTemplate := C.gst_element_get_pad_template(e.GetElementPointer(), cname)
+	return newPadTemplateFromPointer(cpadTemplate)
+}
+
+func (e *element) RequestPad(template PadTemplate, name *string, caps Caps) Pad {
+	var cname *C.char
+	var ccaps *C.GstCaps
+
+	if name == nil {
+		cname = nil
+	} else {
+		cname = C.CString(*name)
+	}
+
+	if caps == nil {
+		ccaps = nil
+	}
+
+	cpad := C.gst_element_request_pad(
+		e.GetElementPointer(), 
+		template.GetPadTemplatePointer(),
+		cname,
+		ccaps,
+	)
+
+	if cname != nil {
+		C.free(unsafe.Pointer(cname))
+	}
+
+	return newPadFromPointer(cpad)
 }
 
 func (e *element) GetElementPointer() *C.GstElement {

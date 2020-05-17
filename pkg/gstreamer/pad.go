@@ -21,6 +21,8 @@ type pad struct {
 
 type PadTemplate interface {
 	Object
+
+	GetPadTemplatePointer() *C.GstPadTemplate
 }
 
 type padTemplate struct {
@@ -89,4 +91,22 @@ func NewPadTemplate(name *string, direction GstPadDirection, presence GstPadPres
 	}
 
 	return padTemplate, nil
+}
+
+func newPadFromPointer(pointer *C.GstPad) Pad {
+	pad := &pad{}
+	pad.GstObject = convertPointerToObject(unsafe.Pointer(pointer))
+
+	return pad
+}
+
+func newPadTemplateFromPointer(pointer *C.GstPadTemplate) PadTemplate {
+	padTemplate := &padTemplate{}
+	padTemplate.GstObject = convertPointerToObject(unsafe.Pointer(pointer))
+
+	return padTemplate
+}
+
+func (pt *padTemplate) GetPadTemplatePointer() *C.GstPadTemplate {
+	return (*C.GstPadTemplate)(unsafe.Pointer(pt.GstObject))
 }

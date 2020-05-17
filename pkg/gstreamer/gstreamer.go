@@ -55,10 +55,10 @@ type Structure struct {
 	structure *C.GstStructure
 }
 
-//Bus ...
-type Bus struct {
-	bus *C.GstBus
-}
+// //Bus ...
+// type Bus struct {
+// 	bus *C.GstBus
+// }
 
 //Message ...
 type Message struct {
