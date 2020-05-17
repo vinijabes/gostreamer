@@ -7,7 +7,6 @@ package gstreamer
 */
 import "C"
 import (
-	"fmt"
 	"log"
 	"sync"
 	"unsafe"
@@ -36,20 +35,20 @@ type callback struct {
 	padAdded GoHandlePadAddedSignalCallback
 }
 
-//Pad ...
-type Pad struct {
-	pad *C.GstPad
-}
+// //Pad ...
+// type Pad struct {
+// 	pad *C.GstPad
+// }
 
-//PadTemplate ...
-type PadTemplate struct {
-	padTemplate *C.GstPadTemplate
-}
+// //PadTemplate ...
+// type PadTemplate struct {
+// 	padTemplate *C.GstPadTemplate
+// // }
 
-//Caps ...
-type Caps struct {
-	caps *C.GstCaps
-}
+// //Caps ...
+// type Caps struct {
+// 	caps *C.GstCaps
+// }
 
 //Structure ...
 type Structure struct {
@@ -330,101 +329,101 @@ func goHandlePadAddedSignal(elementID C.int, cpad *C.GstPad) {
 	// }
 }
 
-//Link ...
-func (p *Pad) Link(dest *Pad) int {
-	ret := int(C.gstreamer_pad_link(p.pad, dest.pad))
-	return int(ret)
-}
+// //Link ...
+// func (p *Pad) Link(dest *Pad) int {
+// 	ret := int(C.gstreamer_pad_link(p.pad, dest.pad))
+// 	return int(ret)
+// }
 
-//GetCurrentCaps ...
-func (p *Pad) GetCurrentCaps() *Caps {
-	ccaps := C.gst_pad_get_current_caps(p.pad)
-	if ccaps == nil {
-		return nil
-	}
+// //GetCurrentCaps ...
+// func (p *Pad) GetCurrentCaps() *Caps {
+// 	ccaps := C.gst_pad_get_current_caps(p.pad)
+// 	if ccaps == nil {
+// 		return nil
+// 	}
 
-	caps := &Caps{caps: ccaps}
+// 	caps := &Caps{caps: ccaps}
 
-	return caps
-}
+// 	return caps
+// }
 
-//Set ...
-func (p *Pad) Set(property string, value string) {
-	elementPropertyStrUnsafe := C.CString(property)
-	elementValueStrUnsafe := C.CString(value)
-	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
-	defer C.free(unsafe.Pointer(elementValueStrUnsafe))
+// //Set ...
+// func (p *Pad) Set(property string, value string) {
+// 	elementPropertyStrUnsafe := C.CString(property)
+// 	elementValueStrUnsafe := C.CString(value)
+// 	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
+// 	defer C.free(unsafe.Pointer(elementValueStrUnsafe))
 
-	C.gstreamer_pad_object_set(p.pad, elementPropertyStrUnsafe, elementValueStrUnsafe)
-}
+// 	C.gstreamer_pad_object_set(p.pad, elementPropertyStrUnsafe, elementValueStrUnsafe)
+// }
 
-//SetInt ...
-func (p *Pad) SetInt(property string, value int64) {
-	elementPropertyStrUnsafe := C.CString(property)
-	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
+// //SetInt ...
+// func (p *Pad) SetInt(property string, value int64) {
+// 	elementPropertyStrUnsafe := C.CString(property)
+// 	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
 
-	C.gstreamer_pad_object_set_int(p.pad, elementPropertyStrUnsafe, C.long(value))
-}
+// 	C.gstreamer_pad_object_set_int(p.pad, elementPropertyStrUnsafe, C.long(value))
+// }
 
-//SetFloat ...
-func (p *Pad) SetFloat(property string, value float64) {
-	elementPropertyStrUnsafe := C.CString(property)
-	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
+// //SetFloat ...
+// func (p *Pad) SetFloat(property string, value float64) {
+// 	elementPropertyStrUnsafe := C.CString(property)
+// 	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
 
-	C.gstreamer_pad_object_set_double(p.pad, elementPropertyStrUnsafe, C.double(value))
-}
+// 	C.gstreamer_pad_object_set_double(p.pad, elementPropertyStrUnsafe, C.double(value))
+// }
 
-//SetBool ...
-func (p *Pad) SetBool(property string, value bool) {
-	elementPropertyStrUnsafe := C.CString(property)
-	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
+// //SetBool ...
+// func (p *Pad) SetBool(property string, value bool) {
+// 	elementPropertyStrUnsafe := C.CString(property)
+// 	defer C.free(unsafe.Pointer(elementPropertyStrUnsafe))
 
-	C.gstreamer_pad_object_set_bool(p.pad, elementPropertyStrUnsafe, C.int(btoi(value)))
-}
+// 	C.gstreamer_pad_object_set_bool(p.pad, elementPropertyStrUnsafe, C.int(btoi(value)))
+// }
 
-//GetStructure ...
-func (c *Caps) GetStructure() *Structure {
-	cstructure := C.gst_caps_get_structure(c.caps, C.uint(0))
-	if cstructure == nil {
-		return nil
-	}
-	structure := &Structure{structure: cstructure}
+// //GetStructure ...
+// func (c *Caps) GetStructure() *Structure {
+// 	cstructure := C.gst_caps_get_structure(c.caps, C.uint(0))
+// 	if cstructure == nil {
+// 		return nil
+// 	}
+// 	structure := &Structure{structure: cstructure}
 
-	return structure
-}
+// 	return structure
+// }
 
-//Unref ...
-func (c *Caps) Unref() {
-	C.gst_caps_unref(c.caps)
-}
+// //Unref ...
+// func (c *Caps) Unref() {
+// 	C.gst_caps_unref(c.caps)
+// }
 
-//GetName ...
-func (s *Structure) GetName() string {
-	res := C.GoString(C.gst_structure_get_name(s.structure))
-	return res
-}
+// //GetName ...
+// func (s *Structure) GetName() string {
+// 	res := C.GoString(C.gst_structure_get_name(s.structure))
+// 	return res
+// }
 
-//ScanPathForPlugins ...
-func ScanPathForPlugins(directory string) {
-	C.gst_registry_scan_path(C.gst_registry_get(), C.CString(directory))
-}
+// //ScanPathForPlugins ...
+// func ScanPathForPlugins(directory string) {
+// 	C.gst_registry_scan_path(C.gst_registry_get(), C.CString(directory))
+// }
 
-//CheckPlugins ...
-func CheckPlugins(plugins []string) error {
+// //CheckPlugins ...
+// func CheckPlugins(plugins []string) error {
 
-	var plugin *C.GstPlugin
-	var registry *C.GstRegistry
+// 	var plugin *C.GstPlugin
+// 	var registry *C.GstRegistry
 
-	registry = C.gst_registry_get()
+// 	registry = C.gst_registry_get()
 
-	for _, pluginstr := range plugins {
-		plugincstr := C.CString(pluginstr)
-		plugin = C.gst_registry_find_plugin(registry, plugincstr)
-		C.free(unsafe.Pointer(plugincstr))
-		if plugin == nil {
-			return fmt.Errorf("Required gstreamer plugin %s not found", pluginstr)
-		}
-	}
+// 	for _, pluginstr := range plugins {
+// 		plugincstr := C.CString(pluginstr)
+// 		plugin = C.gst_registry_find_plugin(registry, plugincstr)
+// 		C.free(unsafe.Pointer(plugincstr))
+// 		if plugin == nil {
+// 			return fmt.Errorf("Required gstreamer plugin %s not found", pluginstr)
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
