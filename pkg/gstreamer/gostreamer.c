@@ -1,4 +1,4 @@
-#include "gstreamer.h"
+#include "gostreamer.h"
 #include <gst/video/video.h>
 #include <gst/audio/audio.h>
 #include <gst/gstcaps.h>
@@ -11,7 +11,7 @@ void gstreamer_init() {
 }
 
 GstElement* gstreamer_element_factory_make(const char* factoryname, const char* name){
-    return GST_ELEMENT(gst_element_factory_make(factoryname, NULL));
+    return GST_ELEMENT(gst_element_factory_make(factoryname, name));
 }
 
 int gstreamer_element_link(GstElement* src, GstElement* dest){

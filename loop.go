@@ -1,8 +1,8 @@
-package gstreamer
+package gostreamer
 
 /*
 #cgo pkg-config: gstreamer-1.0
-#include "gstreamer.h"
+#include "include/gostreamer.h"
 */
 import "C"
 
