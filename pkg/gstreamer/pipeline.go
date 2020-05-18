@@ -24,7 +24,7 @@ type pipeline struct {
 }
 
 //NewPipeline ...
-func NewPipeline(name string) (Bin, error) {
+func NewPipeline(name string) (Pipeline, error) {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 

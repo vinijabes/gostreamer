@@ -24,6 +24,11 @@ func TestNewPad(t *testing.T) {
 		_, err := gstreamer.NewPad(&name, gstreamer.GstPadSink)
 		ok(t, err)
 	})
+
+	t.Run("CreateUnnamedPad", func(t *testing.T) {
+		_, err := gstreamer.NewPad(nil, gstreamer.GstPadUnknown)
+		ok(t, err)
+	})
 }
 
 func TestPad(t *testing.T) {

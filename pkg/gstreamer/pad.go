@@ -7,7 +7,8 @@ package gstreamer
 import "C"
 
 import (
-	"fmt"
+	"errors"
+	"runtime"
 	"unsafe"
 )
 
@@ -44,67 +45,66 @@ const (
 	GstPadRequest
 )
 
+var (
+	ErrFailedToCreatePadTemplate = errors.New("gstreamer: failed to create pad template")
+	ErrFailedToCreatePad         = errors.New("gstreamer: failed to create pad")
+)
+
 func NewPad(name *string, direction GstPadDirection) (Pad, error) {
-	pad := &pad{}
-
+	var cname *C.char
 	if name == nil {
-		cpad := C.gst_pad_new(nil, C.GstPadDirection(direction))
-		if cpad == nil {
-			return nil, fmt.Errorf("failed to create Pad")
-		}
-
-		pad.GstObject = convertPointerToObject(unsafe.Pointer(cpad))
+		cname = nil
 	} else {
 		cname := C.CString(*name)
 		defer C.free(unsafe.Pointer(cname))
-
-		cpad := C.gst_pad_new(nil, C.GstPadDirection(direction))
-		if cpad == nil {
-			return nil, fmt.Errorf("failed to create Pad")
-		}
-		pad.GstObject = convertPointerToObject(unsafe.Pointer(cpad))
 	}
+
+	cpad := C.gst_pad_new(cname, C.GstPadDirection(direction))
+
+	return newPadFromPointer(cpad)
+}
+
+func NewPadTemplate(name *string, direction GstPadDirection, presence GstPadPresence, caps Caps) (PadTemplate, error) {
+	var cname *C.char
+	if name == nil {
+		cname = nil
+	} else {
+		cname := C.CString(*name)
+		defer C.free(unsafe.Pointer(cname))
+	}
+
+	cpadTemplate := C.gst_pad_template_new(cname, C.GstPadDirection(direction), C.GstPadPresence(presence), caps.GetCapsPointer())
+	return newPadTemplateFromPointer(cpadTemplate)
+}
+
+func newPadFromPointer(pointer *C.GstPad) (Pad, error) {
+	if pointer == nil {
+		return nil, ErrFailedToCreatePadTemplate
+	}
+
+	pad := &pad{}
+	pad.GstObject = convertPointerToObject(unsafe.Pointer(pointer))
+
+	runtime.SetFinalizer(pad, func(p Pad) {
+		p.Unref()
+	})
 
 	return pad, nil
 }
 
-func NewPadTemplate(name *string, direction GstPadDirection, presence GstPadPresence, caps Caps) (PadTemplate, error) {
-	padTemplate := &padTemplate{}
-
-	if name == nil {
-		cpadTemplate := C.gst_pad_template_new(nil, C.GstPadDirection(direction), C.GstPadPresence(presence), caps.GetCapsPointer())
-		if cpadTemplate == nil {
-			return nil, fmt.Errorf("failed to create PadTemplate")
-		}
-
-		padTemplate.GstObject = convertPointerToObject(unsafe.Pointer(cpadTemplate))
-	} else {
-		cpadName := C.CString(*name)
-		defer C.free(unsafe.Pointer(cpadName))
-
-		cpadTemplate := C.gst_pad_template_new(cpadName, C.GstPadDirection(direction), C.GstPadPresence(presence), caps.GetCapsPointer())
-		if cpadTemplate == nil {
-			return nil, fmt.Errorf("failed to create PadTemplate")
-		}
-
-		padTemplate.GstObject = convertPointerToObject(unsafe.Pointer(cpadTemplate))
+func newPadTemplateFromPointer(pointer *C.GstPadTemplate) (PadTemplate, error) {
+	if pointer == nil {
+		return nil, ErrFailedToCreatePad
 	}
 
-	return padTemplate, nil
-}
-
-func newPadFromPointer(pointer *C.GstPad) Pad {
-	pad := &pad{}
-	pad.GstObject = convertPointerToObject(unsafe.Pointer(pointer))
-
-	return pad
-}
-
-func newPadTemplateFromPointer(pointer *C.GstPadTemplate) PadTemplate {
 	padTemplate := &padTemplate{}
 	padTemplate.GstObject = convertPointerToObject(unsafe.Pointer(pointer))
 
-	return padTemplate
+	runtime.SetFinalizer(padTemplate, func(pt PadTemplate) {
+		pt.Unref()
+	})
+
+	return padTemplate, nil
 }
 
 func (pt *padTemplate) GetPadTemplatePointer() *C.GstPadTemplate {

@@ -7,11 +7,12 @@ package gstreamer
 */
 import "C"
 import (
-	"fmt"
+	"errors"
+	"runtime"
 	"unsafe"
 )
 
-type Bus interface{
+type Bus interface {
 	Object
 
 	HavePending() bool
@@ -22,15 +23,27 @@ type bus struct {
 	object
 }
 
+var (
+	ErrFailedToCreateBus = errors.New("failed to create bus")
+)
+
 func NewBus() (Bus, error) {
 	cbus := C.gst_bus_new()
+	return newBusFromPointer(cbus)
+}
 
-	if cbus == nil {
-		return nil, fmt.Errorf("failed to create bus")
+func newBusFromPointer(pointer *C.GstBus) (Bus, error) {
+	if pointer == nil {
+		return nil, ErrFailedToCreateBus
 	}
 
 	bus := &bus{}
-	bus.GstObject = convertPointerToObject(unsafe.Pointer(cbus))
+	bus.GstObject = convertPointerToObject(unsafe.Pointer(pointer))
+
+	runtime.SetFinalizer(bus, func(b Bus) {
+		b.Unref()
+	})
+
 	return bus, nil
 }
 

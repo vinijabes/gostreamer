@@ -21,8 +21,10 @@ type Element interface {
 
 	SetState(GstState) GstStateChangeReturn
 
-	GetPadTemplate(string) PadTemplate
-	RequestPad(PadTemplate, *string, Caps) Pad
+	GetPadTemplate(string) (PadTemplate, error)
+	RequestPad(PadTemplate, *string, Caps) (Pad, error)
+
+	GetBus() (Bus, error)
 
 	GetElementPointer() *C.GstElement
 }
@@ -118,7 +120,7 @@ func (e *element) SetState(state GstState) GstStateChangeReturn {
 	return result
 }
 
-func (e *element) GetPadTemplate(name string) PadTemplate {
+func (e *element) GetPadTemplate(name string) (PadTemplate, error) {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 
@@ -126,7 +128,7 @@ func (e *element) GetPadTemplate(name string) PadTemplate {
 	return newPadTemplateFromPointer(cpadTemplate)
 }
 
-func (e *element) RequestPad(template PadTemplate, name *string, caps Caps) Pad {
+func (e *element) RequestPad(template PadTemplate, name *string, caps Caps) (Pad, error) {
 	var cname *C.char
 	var ccaps *C.GstCaps
 
@@ -141,7 +143,7 @@ func (e *element) RequestPad(template PadTemplate, name *string, caps Caps) Pad 
 	}
 
 	cpad := C.gst_element_request_pad(
-		e.GetElementPointer(), 
+		e.GetElementPointer(),
 		template.GetPadTemplatePointer(),
 		cname,
 		ccaps,
@@ -152,6 +154,11 @@ func (e *element) RequestPad(template PadTemplate, name *string, caps Caps) Pad 
 	}
 
 	return newPadFromPointer(cpad)
+}
+
+func (e *element) GetBus() (Bus, error) {
+	cbus := C.gst_element_get_bus(e.GetElementPointer())
+	return newBusFromPointer(cbus)
 }
 
 func (e *element) GetElementPointer() *C.GstElement {
