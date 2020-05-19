@@ -22,34 +22,12 @@ type caps struct {
 
 func NewCapsAny() (Caps, error) {
 	ccaps := C.gst_caps_new_any()
-	if ccaps == nil {
-		return nil, fmt.Errorf("failed to create Caps")
-	}
-
-	caps := &caps{}
-	caps.GstCaps = ccaps
-
-	runtime.SetFinalizer(caps, func(c Caps) {
-		c.Unref()
-	})
-
-	return caps, nil
+	return newCapsFromPointer(ccaps)
 }
 
 func NewCapsEmpty() (Caps, error) {
 	ccaps := C.gst_caps_new_empty()
-	if ccaps == nil {
-		return nil, fmt.Errorf("failed to create Caps")
-	}
-
-	caps := &caps{}
-	caps.GstCaps = ccaps
-
-	runtime.SetFinalizer(caps, func(c Caps) {
-		c.Unref()
-	})
-
-	return caps, nil
+	return newCapsFromPointer(ccaps)
 }
 
 func NewCapsEmptySimple(mediaType string) (Caps, error) {
@@ -57,12 +35,23 @@ func NewCapsEmptySimple(mediaType string) (Caps, error) {
 	defer C.free(unsafe.Pointer(cmediaType))
 
 	ccaps := C.gst_caps_new_empty_simple(cmediaType)
-	if ccaps == nil {
+	return newCapsFromPointer(ccaps)
+}
+
+func NewCapsFromString(caps string) (Caps, error) {
+	c := (*C.gchar)(unsafe.Pointer(C.CString(caps)))
+	defer C.g_free(C.gpointer(unsafe.Pointer(c)))
+	ccaps := C.gst_caps_from_string(c)
+	return newCapsFromPointer(ccaps)
+}
+
+func newCapsFromPointer(pointer *C.GstCaps) (Caps, error) {
+	if pointer == nil {
 		return nil, fmt.Errorf("failed to create Caps")
 	}
 
 	caps := &caps{}
-	caps.GstCaps = ccaps
+	caps.GstCaps = pointer
 
 	runtime.SetFinalizer(caps, func(c Caps) {
 		c.Unref()

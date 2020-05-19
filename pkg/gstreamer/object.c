@@ -17,6 +17,10 @@ void gostreamer_object_set_bool(GstObject* object, const char* first_property_na
     g_object_set(object, first_property_name, arg, NULL);
 }
 
+void gostreamer_object_set_caps(GstObject* object, const char* first_property_name,const GstCaps *arg){
+    g_object_set(object, first_property_name, arg, NULL);
+}
+
 gchar* gostreamer_object_get_string(GstObject* object, const char* first_property_name) {
     gchar *data;
     g_object_get (object, first_property_name, &data, NULL);

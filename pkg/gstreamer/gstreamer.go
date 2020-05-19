@@ -9,7 +9,6 @@ import "C"
 import (
 	"log"
 	"sync"
-	"unsafe"
 )
 
 //export goPrint
@@ -60,24 +59,10 @@ type Structure struct {
 // 	bus *C.GstBus
 // }
 
-//Message ...
-type Message struct {
-	message *C.GstMessage
-}
-type MessageType int
-
-//MessageType constants
-const (
-	MessageUnknown      MessageType = C.GST_MESSAGE_UNKNOWN
-	MessageEOS          MessageType = C.GST_MESSAGE_EOS
-	MessageError        MessageType = C.GST_MESSAGE_ERROR
-	MessageWarning      MessageType = C.GST_MESSAGE_WARNING
-	MessageInfo         MessageType = C.GST_MESSAGE_INFO
-	MessageTag          MessageType = C.GST_MESSAGE_TAG
-	MessageBuffering    MessageType = C.GST_MESSAGE_BUFFERING
-	MessageStateChanged MessageType = C.GST_MESSAGE_STATE_CHANGED
-	MessageAny          MessageType = C.GST_MESSAGE_ANY
-)
+// //Message ...
+// type Message struct {
+// 	message *C.GstMessage
+// }
 
 var pipelines = make(map[int]*Pipeline)
 var elements = make(map[int]*Element)
@@ -146,23 +131,23 @@ func btoi(b bool) int {
 // 	return element, nil
 // }
 
-//GetType ...
-func (m *Message) GetType() MessageType {
-	c := C.toGstMessageType(unsafe.Pointer(m.message))
-	return MessageType(c)
-}
+// //GetType ...
+// func (m *Message) GetType() MessageType {
+// 	c := C.toGstMessageType(unsafe.Pointer(m.message))
+// 	return MessageType(c)
+// }
 
-//GetTimestamp ...
-func (m *Message) GetTimestamp() uint64 {
-	c := C.messageTimestamp(unsafe.Pointer(m.message))
-	return uint64(c)
-}
+// //GetTimestamp ...
+// func (m *Message) GetTimestamp() uint64 {
+// 	c := C.messageTimestamp(unsafe.Pointer(m.message))
+// 	return uint64(c)
+// }
 
-//GetTypeName ...
-func (m *Message) GetTypeName() string {
-	c := C.messageTypeName(unsafe.Pointer(m.message))
-	return C.GoString(c)
-}
+// //GetTypeName ...
+// func (m *Message) GetTypeName() string {
+// 	c := C.messageTypeName(unsafe.Pointer(m.message))
+// 	return C.GoString(c)
+// }
 
 // //Start ...
 // func (p *Pipeline) Start() {

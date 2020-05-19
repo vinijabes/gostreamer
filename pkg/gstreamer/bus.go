@@ -16,6 +16,8 @@ type Bus interface {
 	Object
 
 	HavePending() bool
+	Pop() (Message, error)
+
 	GetBusPointer() *C.GstBus
 }
 
@@ -24,7 +26,8 @@ type bus struct {
 }
 
 var (
-	ErrFailedToCreateBus = errors.New("failed to create bus")
+	ErrFailedToCreateBus     = errors.New("failed to create bus")
+	ErrFailedToCreateMessage = errors.New("failed to create message")
 )
 
 func NewBus() (Bus, error) {
@@ -49,6 +52,11 @@ func newBusFromPointer(pointer *C.GstBus) (Bus, error) {
 
 func (b *bus) HavePending() bool {
 	return C.gst_bus_have_pending(b.GetBusPointer()) != 0
+}
+
+func (b *bus) Pop() (Message, error) {
+	cmessage := C.gst_bus_pop(b.GetBusPointer())
+	return newMessageFromPointer(cmessage)
 }
 
 func (b *bus) GetBusPointer() *C.GstBus {

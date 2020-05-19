@@ -7,6 +7,7 @@ package gstreamer
 */
 import "C"
 import (
+	"errors"
 	"fmt"
 	"runtime"
 	"unsafe"
@@ -25,6 +26,8 @@ type Element interface {
 	RequestPad(PadTemplate, *string, Caps) (Pad, error)
 
 	GetBus() (Bus, error)
+
+	Push(buffer []byte) error
 
 	GetElementPointer() *C.GstElement
 }
@@ -163,6 +166,19 @@ func (e *element) GetBus() (Bus, error) {
 
 func (e *element) GetElementPointer() *C.GstElement {
 	return (*C.GstElement)(unsafe.Pointer(e.GstObject))
+}
+
+func (e *element) Push(buffer []byte) (err error) {
+	b := C.CBytes(buffer)
+	defer C.free(unsafe.Pointer(b))
+	gstReturn := C.gostreamer_element_push_buffer(e.GetElementPointer(), b, C.int(len(buffer)))
+
+	if gstReturn != C.GST_FLOW_OK {
+		err = errors.New("could not push buffer on appsrc element")
+		return
+	}
+
+	return
 }
 
 func (ef *elementFactory) Create(name string) Element {

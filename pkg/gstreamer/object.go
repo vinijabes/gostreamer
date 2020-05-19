@@ -31,6 +31,10 @@ type object struct {
 }
 
 func (o *object) GetParent() Object {
+	if o.GstObject == nil {
+		return nil
+	}
+
 	parent := C.gst_object_get_parent(o.GstObject)
 	if parent != nil {
 		newObj := &object{
@@ -89,6 +93,9 @@ func (o *object) Set(name string, value interface{}) {
 			cvalue = 0
 		}
 		C.gostreamer_object_set_bool(o.GstObject, cname, C.gboolean(cvalue))
+	case Caps:
+		caps := value.(Caps)
+		C.gostreamer_object_set_caps(o.GstObject, cname, caps.GetCapsPointer())
 	}
 }
 
