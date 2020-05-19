@@ -18,11 +18,12 @@ type Element interface {
 	Object
 
 	Link(Element) bool
-	Unlink(Element) bool
+	Unlink(Element)
 
 	SetState(GstState) GstStateChangeReturn
 
 	GetPadTemplate(string) (PadTemplate, error)
+	GetStaticPad(padName string) (Pad, error)
 	RequestPad(PadTemplate, *string, Caps) (Pad, error)
 
 	GetBus() (Bus, error)
@@ -114,8 +115,8 @@ func (e *element) Link(other Element) bool {
 	return !(int(C.gst_element_link(e.GetElementPointer(), other.GetElementPointer())) == 0)
 }
 
-func (e *element) Unlink(other Element) bool {
-	return !(int(C.gst_element_link(e.GetElementPointer(), other.GetElementPointer())) == 0)
+func (e *element) Unlink(other Element) {
+	C.gst_element_unlink(e.GetElementPointer(), other.GetElementPointer())
 }
 
 func (e *element) SetState(state GstState) GstStateChangeReturn {
@@ -129,6 +130,14 @@ func (e *element) GetPadTemplate(name string) (PadTemplate, error) {
 
 	cpadTemplate := C.gst_element_get_pad_template(e.GetElementPointer(), cname)
 	return newPadTemplateFromPointer(cpadTemplate)
+}
+
+func (e *element) GetStaticPad(padName string) (Pad, error) {
+	elementPadNameStrUnsafe := C.CString(padName)
+	defer C.free(unsafe.Pointer(elementPadNameStrUnsafe))
+
+	cpad := C.gst_element_get_static_pad(e.GetElementPointer(), elementPadNameStrUnsafe)
+	return newPadFromPointer(cpad)
 }
 
 func (e *element) RequestPad(template PadTemplate, name *string, caps Caps) (Pad, error) {

@@ -17,6 +17,10 @@ void gostreamer_object_set_bool(GstObject* object, const char* first_property_na
     g_object_set(object, first_property_name, arg, NULL);
 }
 
+void gostreamer_object_set_double(GstObject* object, const char* first_property_name, gdouble arg){
+    g_object_set(object, first_property_name, arg, NULL);
+}
+
 void gostreamer_object_set_caps(GstObject* object, const char* first_property_name,const GstCaps *arg){
     g_object_set(object, first_property_name, arg, NULL);
 }
@@ -41,6 +45,12 @@ guint gostreamer_object_get_uint(GstObject* object, const char* first_property_n
 
 gboolean gostreamer_object_get_bool(GstObject* object, const char* first_property_name){
     gboolean data;
+    g_object_get (object, first_property_name, &data, NULL);
+    return data;
+}
+
+gdouble gostreamer_object_get_double(GstObject* object, const char* first_property_name){
+    gdouble data;
     g_object_get (object, first_property_name, &data, NULL);
     return data;
 }

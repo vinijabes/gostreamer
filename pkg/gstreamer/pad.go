@@ -14,6 +14,11 @@ import (
 
 type Pad interface {
 	Object
+
+	Link(Pad) bool
+	Unlink(Pad) bool
+
+	GetPadPointer() *C.GstPad
 }
 
 type pad struct {
@@ -105,6 +110,18 @@ func newPadTemplateFromPointer(pointer *C.GstPadTemplate) (PadTemplate, error) {
 	})
 
 	return padTemplate, nil
+}
+
+func (p *pad) Link(other Pad) bool {
+	return !(int(C.gst_pad_link(p.GetPadPointer(), other.GetPadPointer())) == 0)
+}
+
+func (p *pad) Unlink(other Pad) bool {
+	return !(int(C.gst_pad_unlink(p.GetPadPointer(), other.GetPadPointer())) == 0)
+}
+
+func (p *pad) GetPadPointer() *C.GstPad {
+	return (*C.GstPad)(unsafe.Pointer(p.GstObject))
 }
 
 func (pt *padTemplate) GetPadTemplatePointer() *C.GstPadTemplate {

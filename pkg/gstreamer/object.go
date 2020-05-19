@@ -85,6 +85,8 @@ func (o *object) Set(name string, value interface{}) {
 		C.gostreamer_object_set_int(o.GstObject, cname, C.gint(value.(int)))
 	case uint32:
 		C.gostreamer_object_set_uint(o.GstObject, cname, C.guint(value.(uint32)))
+	case float32:
+		C.gostreamer_object_set_double(o.GstObject, cname, C.gdouble(value.(float32)))
 	case bool:
 		var cvalue int
 		if value.(bool) == true {
@@ -110,6 +112,8 @@ func (o *object) Get(name string, value interface{}) {
 		*(value.(*int)) = int(C.gostreamer_object_get_int(o.GstObject, cname))
 	case *uint32:
 		*(value.(*uint32)) = uint32(C.gostreamer_object_get_uint(o.GstObject, cname))
+	case *float32:
+		*(value.(*float32)) = float32(C.gostreamer_object_get_double(o.GstObject, cname))
 	case *bool:
 		*(value.(*bool)) = !(int(C.gostreamer_object_get_bool(o.GstObject, cname)) == 0)
 	default:
