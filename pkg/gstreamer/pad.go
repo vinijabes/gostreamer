@@ -15,7 +15,7 @@ import (
 type Pad interface {
 	Object
 
-	Link(Pad) bool
+	Link(Pad) GstPadLinkReturn
 	Unlink(Pad) bool
 
 	GetPadPointer() *C.GstPad
@@ -37,6 +37,7 @@ type padTemplate struct {
 
 type GstPadDirection int
 type GstPadPresence int
+type GstPadLinkReturn int
 
 const (
 	GstPadUnknown GstPadDirection = iota
@@ -48,6 +49,16 @@ const (
 	GstPadAlways GstPadPresence = iota
 	GstPadSometimes
 	GstPadRequest
+)
+
+const (
+	GstPadLinkOk             GstPadLinkReturn = C.GST_PAD_LINK_OK
+	GstPadLinkWrongHierarchy GstPadLinkReturn = C.GST_PAD_LINK_WRONG_HIERARCHY
+	GstPadLinkWasLinked      GstPadLinkReturn = C.GST_PAD_LINK_WAS_LINKED
+	GstPadLinkWrongDirection GstPadLinkReturn = C.GST_PAD_LINK_WRONG_DIRECTION
+	GstPadLinkNoFormat       GstPadLinkReturn = C.GST_PAD_LINK_NOFORMAT
+	GstPadLinkNoSched        GstPadLinkReturn = C.GST_PAD_LINK_NOSCHED
+	GstPadLinkRefused        GstPadLinkReturn = C.GST_PAD_LINK_REFUSED
 )
 
 var (
@@ -112,8 +123,8 @@ func newPadTemplateFromPointer(pointer *C.GstPadTemplate) (PadTemplate, error) {
 	return padTemplate, nil
 }
 
-func (p *pad) Link(other Pad) bool {
-	return !(int(C.gst_pad_link(p.GetPadPointer(), other.GetPadPointer())) == 0)
+func (p *pad) Link(other Pad) GstPadLinkReturn {
+	return GstPadLinkReturn(C.gst_pad_link(p.GetPadPointer(), other.GetPadPointer()))
 }
 
 func (p *pad) Unlink(other Pad) bool {
