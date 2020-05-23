@@ -40,6 +40,7 @@ func NewBin(name string) (Bin, error) {
 		element: element{
 			object: object{
 				GstObject: convertPointerToObject(unsafe.Pointer(cbin)),
+				needUnref: true,
 			},
 		},
 	}
@@ -52,6 +53,7 @@ func NewBin(name string) (Bin, error) {
 }
 
 func (b *bin) Add(element Element) bool {
+	element.DisableAutoUnref()
 	return !(int(C.gst_bin_add(b.GetBinPointer(), element.GetElementPointer())) == 0)
 }
 

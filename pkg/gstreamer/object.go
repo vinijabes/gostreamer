@@ -19,6 +19,10 @@ type Object interface {
 	SetName(string)
 	GetName() string
 
+	EnableAutoUnref()
+	DisableAutoUnref()
+	IsAutoUnrefEnabled() bool
+
 	GetObjectPointer() *C.GstObject
 
 	Set(string, interface{})
@@ -28,6 +32,7 @@ type Object interface {
 //object ...
 type object struct {
 	GstObject *C.GstObject
+	needUnref bool
 }
 
 func (o *object) GetParent() Object {
@@ -119,6 +124,18 @@ func (o *object) Get(name string, value interface{}) {
 	default:
 		fmt.Printf("Type not found %s", reflect.TypeOf(value))
 	}
+}
+
+func (o *object) EnableAutoUnref() {
+	o.needUnref = true
+}
+
+func (o *object) DisableAutoUnref() {
+	o.needUnref = false
+}
+
+func (o *object) IsAutoUnrefEnabled() bool {
+	return o.needUnref
 }
 
 func convertPointerToObject(pointer unsafe.Pointer) *C.GstObject {

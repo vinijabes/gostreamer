@@ -39,6 +39,7 @@ func NewPipeline(name string) (Pipeline, error) {
 			element: element{
 				object: object{
 					GstObject: convertPointerToObject(unsafe.Pointer(cpipeline)),
+					needUnref: true,
 				},
 			},
 		},

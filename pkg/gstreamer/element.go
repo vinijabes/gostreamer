@@ -82,11 +82,14 @@ func NewElement(factory string, name string) (Element, error) {
 	element := &element{
 		object: object{
 			GstObject: convertPointerToObject(unsafe.Pointer(celement)),
+			needUnref: true,
 		},
 	}
 
 	runtime.SetFinalizer(element, func(e Element) {
-		e.Unref()
+		if e.IsAutoUnrefEnabled() {
+			e.Unref()
+		}
 	})
 
 	return element, nil

@@ -87,6 +87,9 @@ func TestAudioPipeline(t *testing.T) {
 	result = pipeline.SetState(gstreamer.GstStateNull)
 	equals(t, gstreamer.GstStateChangeSuccess, result)
 
+	equals(t, true, pipeline.Remove(src))
+	equals(t, true, pipeline.Remove(sink))
+
 	pipeline = nil
 	src = nil
 	sink = nil
