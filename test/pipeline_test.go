@@ -170,3 +170,59 @@ func TestAppSrcPipeline(t *testing.T) {
 	sink = nil
 	runtime.GC()
 }
+
+func TestEncodeDecodePipeline(t *testing.T) {
+	PrintMemUsage()
+
+	pipeline, err := gstreamer.NewPipeline("appsrctest")
+	ok(t, err)
+
+	src, err := gstreamer.NewElement("videotestsrc", "source")
+	ok(t, err)
+
+	enc, err := gstreamer.NewElement("vp8enc", "encoder")
+	ok(t, err)
+
+	pay, err := gstreamer.NewElement("rtpvp8pay", "payloader")
+	ok(t, err)
+
+	depay, err := gstreamer.NewElement("rtpvp8depay", "depayloader")
+	ok(t, err)
+
+	dec, err := gstreamer.NewElement("vp8dec", "decoder")
+	ok(t, err)
+
+	sink, err := gstreamer.NewElement("autovideosink", "sink")
+	ok(t, err)
+
+	equals(t, true, pipeline.Add(src))
+	equals(t, true, pipeline.Add(enc))
+	equals(t, true, pipeline.Add(pay))
+	equals(t, true, pipeline.Add(depay))
+	equals(t, true, pipeline.Add(dec))
+	equals(t, true, pipeline.Add(sink))
+
+	equals(t, true, src.Link(enc))
+	equals(t, true, enc.Link(pay))
+	equals(t, true, pay.Link(depay))
+	equals(t, true, depay.Link(dec))
+	equals(t, true, dec.Link(sink))
+
+	result := pipeline.SetState(gstreamer.GstStatePlaying)
+	equals(t, gstreamer.GstStateChangeAsync, result)
+
+	PrintMemUsage()
+
+	time.Sleep(2 * time.Second)
+
+	result = pipeline.SetState(gstreamer.GstStateNull)
+	equals(t, gstreamer.GstStateChangeSuccess, result)
+
+	pipeline = nil
+	src = nil
+	enc = nil
+	depay = nil
+	dec = nil
+	sink = nil
+	runtime.GC()
+}
