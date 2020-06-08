@@ -158,7 +158,7 @@ func TestAppSrcPipeline(t *testing.T) {
 		message, err := bus.Pop()
 		ok(t, err)
 
-		fmt.Println(message.GetName())
+		fmt.Println(message.GetStructure())
 	}
 	equals(t, false, bus.HavePending())
 

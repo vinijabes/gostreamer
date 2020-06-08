@@ -14,6 +14,8 @@ type Message interface {
 	GetType() MessageType
 	GetName() string
 
+	GetStructure() Structure
+
 	Unref()
 	GetMessagePointer() *C.GstMessage
 }
@@ -39,7 +41,7 @@ const (
 
 func newMessageFromPointer(pointer *C.GstMessage) (Message, error) {
 	if pointer == nil {
-		return nil, ErrFailedToCreateBus
+		return nil, ErrFailedToCreateMessage
 	}
 
 	message := &message{}
@@ -62,6 +64,15 @@ func (m *message) GetName() string {
 	name := C.GoString(cname)
 
 	return name
+}
+
+func (m *message) GetStructure() Structure {
+	cstructure := C.gst_message_get_structure(m.GstMessage)
+
+	str := &structure{}
+	str.GstStructure = cstructure
+
+	return str
 }
 
 func (m *message) Unref() {

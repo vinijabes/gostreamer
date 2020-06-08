@@ -49,10 +49,10 @@ type callback struct {
 // 	caps *C.GstCaps
 // }
 
-//Structure ...
-type Structure struct {
-	structure *C.GstStructure
-}
+// //Structure ...
+// type Structure struct {
+// 	structure *C.GstStructure
+// }
 
 // //Bus ...
 // type Bus struct {
