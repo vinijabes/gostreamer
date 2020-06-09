@@ -226,3 +226,141 @@ func TestEncodeDecodePipeline(t *testing.T) {
 	sink = nil
 	runtime.GC()
 }
+
+func TestUriDecodePipeline(t *testing.T) {
+	PrintMemUsage()
+
+	pipeline, err := gstreamer.NewPipeline("urisrctest")
+	ok(t, err)
+
+	src, err := gstreamer.NewElement("uridecodebin", "source")
+	ok(t, err)
+
+	audioconvert, err := gstreamer.NewElement("audioconvert", "audioconvert")
+	ok(t, err)
+
+	audioresample, err := gstreamer.NewElement("audioresample", "resample")
+	ok(t, err)
+
+	audiosink, err := gstreamer.NewElement("autoaudiosink", "audiosink")
+	ok(t, err)
+
+	videoconvert, err := gstreamer.NewElement("videoconvert", "videoconvert")
+	ok(t, err)
+
+	videosink, err := gstreamer.NewElement("autovideosink", "videosink")
+	ok(t, err)
+
+	equals(t, true, pipeline.Add(src))
+	equals(t, true, pipeline.Add(audioconvert))
+	equals(t, true, pipeline.Add(audioresample))
+	equals(t, true, pipeline.Add(audiosink))
+	equals(t, true, pipeline.Add(videoconvert))
+	equals(t, true, pipeline.Add(videosink))
+
+	equals(t, true, audioconvert.Link(audioresample))
+	equals(t, true, audioresample.Link(audiosink))
+	equals(t, true, videoconvert.Link(videosink))
+
+	src.Set("uri", "https://www.freedesktop.org/software/gstreamer-sdk/data/media/sintel_trailer-480p.webm")
+
+	src.SetOnPadAddedCallback(func(element gstreamer.Element, pad gstreamer.Pad) {
+		fmt.Println("PadAdded")
+		var sinkPad gstreamer.Pad
+
+		if pad.GetCurrentCaps().GetStructure(0).GetName() == "audio/x-raw" {
+			sinkPad, err = audioconvert.GetStaticPad("sink")
+		} else {
+			sinkPad, err = videoconvert.GetStaticPad("sink")
+		}
+		ok(t, err)
+
+		result := pad.Link(sinkPad)
+		equals(t, gstreamer.GstPadLinkOk, result)
+	})
+
+	result := pipeline.SetState(gstreamer.GstStatePlaying)
+	equals(t, gstreamer.GstStateChangeAsync, result)
+
+	PrintMemUsage()
+
+	time.Sleep(10 * time.Second)
+
+	result = pipeline.SetState(gstreamer.GstStateNull)
+	equals(t, gstreamer.GstStateChangeSuccess, result)
+
+	pipeline = nil
+	src = nil
+	audioconvert = nil
+	audioresample = nil
+	audiosink = nil
+	runtime.GC()
+}
+
+func TestRtspPipeline(t *testing.T) {
+	PrintMemUsage()
+
+	pipeline, err := gstreamer.NewPipeline("rtspsrcpipeline")
+	ok(t, err)
+
+	src, err := gstreamer.NewElement("rtspsrc", "source")
+	ok(t, err)
+
+	decode, err := gstreamer.NewElement("decodebin", "videodecoder")
+	ok(t, err)
+
+	convert, err := gstreamer.NewElement("videoconvert", "videoconvert")
+	ok(t, err)
+
+	sink, err := gstreamer.NewElement("autovideosink", "videosink")
+	ok(t, err)
+
+	equals(t, true, pipeline.Add(src))
+	equals(t, true, pipeline.Add(decode))
+	equals(t, true, pipeline.Add(convert))
+	equals(t, true, pipeline.Add(sink))
+
+	equals(t, true, convert.Link(sink))
+
+	src.Set("location", "rtsp://203.67.18.25:554/0")
+	src.Set("latency", 0)
+
+	src.SetOnPadAddedCallback(func(element gstreamer.Element, pad gstreamer.Pad) {
+		fmt.Println("PadAddedSrc")
+		var sinkPad gstreamer.Pad
+
+		sinkPad, err = decode.GetStaticPad("sink")
+		ok(t, err)
+
+		result := pad.Link(sinkPad)
+		equals(t, gstreamer.GstPadLinkOk, result)
+	})
+
+	decode.SetOnPadAddedCallback(func(element gstreamer.Element, pad gstreamer.Pad) {
+		fmt.Println("PadAddedDecodeBin")
+		var sinkPad gstreamer.Pad
+
+		sinkPad, err = convert.GetStaticPad("sink")
+		ok(t, err)
+
+		result := pad.Link(sinkPad)
+		equals(t, gstreamer.GstPadLinkOk, result)
+	})
+
+	result := pipeline.SetState(gstreamer.GstStatePlaying)
+	equals(t, gstreamer.GstStateChangeAsync, result)
+
+	PrintMemUsage()
+
+	time.Sleep(20 * time.Second)
+
+	result = pipeline.SetState(gstreamer.GstStateNull)
+	equals(t, gstreamer.GstStateChangeSuccess, result)
+
+	pipeline = nil
+	src = nil
+	decode = nil
+	convert = nil
+	sink = nil
+	runtime.GC()
+}

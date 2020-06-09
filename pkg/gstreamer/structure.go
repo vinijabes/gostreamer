@@ -9,6 +9,7 @@ import "C"
 import "errors"
 
 type Structure interface {
+	GetName() string
 }
 
 type structure struct {
@@ -26,6 +27,10 @@ func newStructureFromPointer(pointer *C.GstStructure) (Structure, error) {
 	structure.GstStructure = pointer
 
 	return structure, nil
+}
+
+func (s *structure) GetName() string {
+	return C.GoString(C.gst_structure_get_name(s.GstStructure))
 }
 
 func (s *structure) String() string {

@@ -13,6 +13,8 @@ import (
 
 type Caps interface {
 	Unref()
+	GetStructure(int) Structure
+
 	GetCapsPointer() *C.GstCaps
 }
 
@@ -62,6 +64,17 @@ func newCapsFromPointer(pointer *C.GstCaps) (Caps, error) {
 
 func (c *caps) Unref() {
 	C.gst_caps_unref(c.GstCaps)
+}
+
+func (c *caps) GetStructure(index int) Structure {
+	cstructure := C.gst_caps_get_structure(c.GetCapsPointer(), C.guint(index))
+	structure, err := newStructureFromPointer(cstructure)
+
+	if err != nil {
+		return nil
+	}
+
+	return structure
 }
 
 func (c *caps) GetCapsPointer() *C.GstCaps {

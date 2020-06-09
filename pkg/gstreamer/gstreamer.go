@@ -30,9 +30,9 @@ type GoHandleSignalCallback func(element *Element)
 //GoHandlePadAddedSignalCallback ...
 type GoHandlePadAddedSignalCallback func(element *Element, pad *Pad)
 
-type callback struct {
-	padAdded GoHandlePadAddedSignalCallback
-}
+// type callback struct {
+// 	padAdded GoHandlePadAddedSignalCallback
+// }
 
 // //Pad ...
 // type Pad struct {

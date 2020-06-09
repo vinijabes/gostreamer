@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
+	"sync"
 	"unsafe"
 )
 
@@ -30,6 +31,9 @@ type Element interface {
 
 	Push(buffer []byte) error
 
+	SetOnPadAddedCallback(PadAddedCallback)
+	SetOnPadRemovedCallback(PadRemovedCallback)
+
 	GetElementPointer() *C.GstElement
 }
 
@@ -41,8 +45,25 @@ type Factory interface {
 	GetElementFactoryPointer() *C.GstElementFactory
 }
 
+type ElementSignalCallback struct {
+	element      Element
+	callbackID   uint64
+	callbackFunc interface{}
+
+	handlerID uint64
+}
+
+var (
+	callbackID  uint64 = 0
+	callbackMap        = map[uint64]*ElementSignalCallback{}
+	mutex       sync.Mutex
+)
+
 type element struct {
 	object
+
+	onPadAdded   *ElementSignalCallback
+	onPadRemoved *ElementSignalCallback
 }
 
 type elementFactory struct {
@@ -51,6 +72,9 @@ type elementFactory struct {
 
 type GstState int
 type GstStateChangeReturn int
+
+type PadAddedCallback func(Element, Pad)
+type PadRemovedCallback func(Element, Pad)
 
 const (
 	GstStateVoidPending GstState = iota
@@ -176,6 +200,44 @@ func (e *element) GetBus() (Bus, error) {
 	return newBusFromPointer(cbus)
 }
 
+func (e *element) SetOnPadAddedCallback(cb PadAddedCallback) {
+	elementCallback := &ElementSignalCallback{
+		element:      e,
+		callbackID:   callbackID,
+		callbackFunc: cb,
+	}
+
+	handlerID := C.gostreamer_add_pad_added_signal(e.GetElementPointer(), C.guint64(callbackID))
+	elementCallback.handlerID = uint64(handlerID)
+
+	e.onPadAdded = elementCallback
+
+	mutex.Lock()
+	callbackMap[callbackID] = elementCallback
+	mutex.Unlock()
+
+	callbackID++
+}
+
+func (e *element) SetOnPadRemovedCallback(cb PadRemovedCallback) {
+	elementCallback := &ElementSignalCallback{
+		element:      e,
+		callbackID:   callbackID,
+		callbackFunc: cb,
+	}
+
+	handlerID := C.gostreamer_add_pad_removed_signal(e.GetElementPointer(), C.guint64(callbackID))
+	elementCallback.handlerID = uint64(handlerID)
+
+	e.onPadRemoved = elementCallback
+
+	mutex.Lock()
+	callbackMap[callbackID] = elementCallback
+	mutex.Unlock()
+
+	callbackID++
+}
+
 func (e *element) GetElementPointer() *C.GstElement {
 	return (*C.GstElement)(unsafe.Pointer(e.GstObject))
 }
@@ -214,4 +276,40 @@ func (ef *elementFactory) Create(name string) Element {
 
 func (ef *elementFactory) GetElementFactoryPointer() *C.GstElementFactory {
 	return (*C.GstElementFactory)(unsafe.Pointer(ef.GstObject))
+}
+
+//export go_pad_added_callback
+func go_pad_added_callback(celement *C.GstElement, cpad *C.GstPad, callbackID C.guint64) {
+	mutex.Lock()
+	callback, ok := callbackMap[uint64(callbackID)]
+	mutex.Unlock()
+
+	if ok {
+		pad, err := newPadFromPointer(cpad)
+		if err != nil {
+			return
+		}
+		pad.DisableAutoUnref()
+
+		padAdded := callback.callbackFunc.(PadAddedCallback)
+		padAdded(callback.element, pad)
+	}
+}
+
+//export go_pad_removed_callback
+func go_pad_removed_callback(celement *C.GstElement, cpad *C.GstPad, callbackID C.guint64) {
+	mutex.Lock()
+	callback, ok := callbackMap[uint64(callbackID)]
+	mutex.Unlock()
+
+	if ok {
+		pad, err := newPadFromPointer(cpad)
+		if err != nil {
+			return
+		}
+		pad.DisableAutoUnref()
+
+		padRemoved := callback.callbackFunc.(PadRemovedCallback)
+		padRemoved(callback.element, pad)
+	}
 }

@@ -6,3 +6,27 @@ GstFlowReturn gostreamer_element_push_buffer(GstElement *element, void *buffer, 
     
     return gst_app_src_push_buffer(GST_APP_SRC(element), data);
 }
+
+void gostreamer_pad_added_callback(GstElement* element, GstPad* pad, gpointer data){
+    ElementUserData* d = (ElementUserData*)data;
+    go_pad_added_callback(element, pad, d->callbackID);
+}
+
+void gostreamer_pad_removed_callback(GstElement* element, GstPad* pad, gpointer data){
+    ElementUserData* d = (ElementUserData*)data;
+    go_pad_removed_callback(element, pad, d->callbackID);
+}
+
+gulong gostreamer_add_pad_added_signal(GstElement* element, guint64 callbackID){
+    ElementUserData *data = calloc(1, sizeof(ElementUserData));
+    data->callbackID = callbackID;
+
+    return g_signal_connect(element, "pad-added", G_CALLBACK(gostreamer_pad_added_callback), data);
+}
+
+gulong gostreamer_add_pad_removed_signal(GstElement* element, guint64 callbackID){
+    ElementUserData *data = calloc(1, sizeof(ElementUserData));
+    data->callbackID = callbackID;
+
+    return g_signal_connect(element, "pad-removed", G_CALLBACK(gostreamer_pad_removed_callback), data);
+}

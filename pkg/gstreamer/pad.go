@@ -18,6 +18,8 @@ type Pad interface {
 	Link(Pad) GstPadLinkReturn
 	Unlink(Pad) bool
 
+	GetCurrentCaps() Caps
+
 	GetPadPointer() *C.GstPad
 }
 
@@ -95,14 +97,16 @@ func NewPadTemplate(name *string, direction GstPadDirection, presence GstPadPres
 
 func newPadFromPointer(pointer *C.GstPad) (Pad, error) {
 	if pointer == nil {
-		return nil, ErrFailedToCreatePadTemplate
+		return nil, ErrFailedToCreatePad
 	}
 
 	pad := &pad{}
 	pad.GstObject = convertPointerToObject(unsafe.Pointer(pointer))
 
 	runtime.SetFinalizer(pad, func(p Pad) {
-		p.Unref()
+		if p.IsAutoUnrefEnabled() {
+			p.Unref()
+		}
 	})
 
 	return pad, nil
@@ -110,7 +114,7 @@ func newPadFromPointer(pointer *C.GstPad) (Pad, error) {
 
 func newPadTemplateFromPointer(pointer *C.GstPadTemplate) (PadTemplate, error) {
 	if pointer == nil {
-		return nil, ErrFailedToCreatePad
+		return nil, ErrFailedToCreatePadTemplate
 	}
 
 	padTemplate := &padTemplate{}
@@ -129,6 +133,17 @@ func (p *pad) Link(other Pad) GstPadLinkReturn {
 
 func (p *pad) Unlink(other Pad) bool {
 	return !(int(C.gst_pad_unlink(p.GetPadPointer(), other.GetPadPointer())) == 0)
+}
+
+func (p *pad) GetCurrentCaps() Caps {
+	ccaps := C.gst_pad_get_current_caps(p.GetPadPointer())
+
+	caps, err := newCapsFromPointer(ccaps)
+	if err != nil {
+		return nil
+	}
+
+	return caps
 }
 
 func (p *pad) GetPadPointer() *C.GstPad {
