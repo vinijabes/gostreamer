@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"runtime"
@@ -171,6 +172,59 @@ func TestAppSrcPipeline(t *testing.T) {
 	runtime.GC()
 }
 
+func TestAppSinkPipeline(t *testing.T) {
+	PrintMemUsage()
+
+	pipeline, err := gstreamer.NewPipeline("appsinktest")
+	ok(t, err)
+
+	src, err := gstreamer.NewElement("videotestsrc", "source")
+	ok(t, err)
+
+	sink, err := gstreamer.NewElement("appsink", "sink")
+	ok(t, err)
+
+	src.Set("is-live", true)
+	src.Set("do-timestamp", true)
+
+	caps, err := gstreamer.NewCapsFromString("video/x-raw,format=RGB,width=640,height=480,bpp=24,depth=24")
+	ok(t, err)
+
+	sink.Set("caps", caps)
+	sink.Set("emit-signals", true)
+
+	samples := make(chan gstreamer.Sample)
+
+	sink.SetOnSampleAddedCallback(func(e gstreamer.Element, sample gstreamer.Sample) {
+		samples <- sample
+	})
+
+	equals(t, true, pipeline.Add(src))
+	equals(t, true, pipeline.Add(sink))
+
+	equals(t, true, src.Link(sink))
+
+	result := pipeline.SetState(gstreamer.GstStatePlaying)
+	equals(t, gstreamer.GstStateChangeAsync, result)
+
+	PrintMemUsage()
+
+	select {
+	case <-samples:
+		break
+	case <-time.After(3 * time.Second):
+		ok(t, errors.New("Timed Out"))
+		break
+	}
+
+	result = pipeline.SetState(gstreamer.GstStateNull)
+	equals(t, gstreamer.GstStateChangeSuccess, result)
+
+	pipeline = nil
+	sink = nil
+	runtime.GC()
+}
+
 func TestEncodeDecodePipeline(t *testing.T) {
 	PrintMemUsage()
 
@@ -309,6 +363,9 @@ func TestRtspPipeline(t *testing.T) {
 	decode, err := gstreamer.NewElement("decodebin", "videodecoder")
 	ok(t, err)
 
+	timeoverlay, err := gstreamer.NewElement("timeoverlay", "timeoverlay")
+	ok(t, err)
+
 	convert, err := gstreamer.NewElement("videoconvert", "videoconvert")
 	ok(t, err)
 
@@ -317,13 +374,15 @@ func TestRtspPipeline(t *testing.T) {
 
 	equals(t, true, pipeline.Add(src))
 	equals(t, true, pipeline.Add(decode))
+	equals(t, true, pipeline.Add(timeoverlay))
 	equals(t, true, pipeline.Add(convert))
 	equals(t, true, pipeline.Add(sink))
 
-	equals(t, true, convert.Link(sink))
+	equals(t, true, convert.Link(timeoverlay))
+	equals(t, true, timeoverlay.Link(sink))
 
-	src.Set("location", "rtsp://203.67.18.25:554/0")
-	src.Set("latency", 0)
+	src.Set("location", "rtsp://177.188.103.117:8554/0")
+	src.Set("latency", 1000)
 
 	src.SetOnPadAddedCallback(func(element gstreamer.Element, pad gstreamer.Pad) {
 		fmt.Println("PadAddedSrc")
@@ -352,7 +411,7 @@ func TestRtspPipeline(t *testing.T) {
 
 	PrintMemUsage()
 
-	time.Sleep(20 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	result = pipeline.SetState(gstreamer.GstStateNull)
 	equals(t, gstreamer.GstStateChangeSuccess, result)

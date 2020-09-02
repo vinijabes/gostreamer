@@ -33,6 +33,7 @@ type Element interface {
 
 	SetOnPadAddedCallback(PadAddedCallback)
 	SetOnPadRemovedCallback(PadRemovedCallback)
+	SetOnSampleAddedCallback(SampleAddedCallback)
 
 	GetElementPointer() *C.GstElement
 }
@@ -62,12 +63,18 @@ var (
 type element struct {
 	object
 
-	onPadAdded   *ElementSignalCallback
-	onPadRemoved *ElementSignalCallback
+	onPadAdded    *ElementSignalCallback
+	onPadRemoved  *ElementSignalCallback
+	onSampleAdded *ElementSignalCallback
 }
 
 type elementFactory struct {
 	object
+}
+
+type Sample struct {
+	Data     []byte
+	Duration int
 }
 
 type GstState int
@@ -75,6 +82,7 @@ type GstStateChangeReturn int
 
 type PadAddedCallback func(Element, Pad)
 type PadRemovedCallback func(Element, Pad)
+type SampleAddedCallback func(Element, Sample)
 
 const (
 	GstStateVoidPending GstState = iota
@@ -238,6 +246,25 @@ func (e *element) SetOnPadRemovedCallback(cb PadRemovedCallback) {
 	callbackID++
 }
 
+func (e *element) SetOnSampleAddedCallback(cb SampleAddedCallback) {
+	elementCallback := &ElementSignalCallback{
+		element:      e,
+		callbackID:   callbackID,
+		callbackFunc: cb,
+	}
+
+	handlerID := C.gostreamer_add_sample_added_signal(e.GetElementPointer(), C.guint64(callbackID))
+	elementCallback.handlerID = uint64(handlerID)
+
+	e.onSampleAdded = elementCallback
+
+	mutex.Lock()
+	callbackMap[callbackID] = elementCallback
+	mutex.Unlock()
+
+	callbackID++
+}
+
 func (e *element) GetElementPointer() *C.GstElement {
 	return (*C.GstElement)(unsafe.Pointer(e.GstObject))
 }
@@ -311,5 +338,21 @@ func go_pad_removed_callback(celement *C.GstElement, cpad *C.GstPad, callbackID 
 
 		padRemoved := callback.callbackFunc.(PadRemovedCallback)
 		padRemoved(callback.element, pad)
+	}
+}
+
+//export go_new_sample_callback
+func go_new_sample_callback(celement *C.GstElement, buffer unsafe.Pointer, bufferLen C.int, duration C.int, callbackID C.guint64) {
+	mutex.Lock()
+	callback, ok := callbackMap[uint64(callbackID)]
+	mutex.Unlock()
+
+	if ok {
+		sample := Sample{
+			Data:     C.GoBytes(buffer, bufferLen),
+			Duration: int(duration),
+		}
+		newSample := callback.callbackFunc.(SampleAddedCallback)
+		newSample(callback.element, sample)
 	}
 }
