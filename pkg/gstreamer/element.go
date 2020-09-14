@@ -355,4 +355,6 @@ func go_new_sample_callback(celement *C.GstElement, buffer unsafe.Pointer, buffe
 		newSample := callback.callbackFunc.(SampleAddedCallback)
 		newSample(callback.element, sample)
 	}
+
+	C.free(buffer)
 }
