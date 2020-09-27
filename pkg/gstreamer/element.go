@@ -22,6 +22,7 @@ type Element interface {
 	Unlink(Element)
 
 	SetState(GstState) GstStateChangeReturn
+	SendEOS() bool
 
 	GetPadTemplate(string) (PadTemplate, error)
 	GetStaticPad(padName string) (Pad, error)
@@ -156,6 +157,11 @@ func (e *element) Unlink(other Element) {
 
 func (e *element) SetState(state GstState) GstStateChangeReturn {
 	result := GstStateChangeReturn(C.gst_element_set_state(e.GetElementPointer(), C.GstState(state)))
+	return result
+}
+
+func (e *element) SendEOS() bool {
+	result := !(int(C.gst_element_send_event(e.GetElementPointer(), C.gst_event_new_eos())) == 0)
 	return result
 }
 
